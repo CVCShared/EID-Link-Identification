@@ -12,7 +12,7 @@ function IdentifyDocxLinks($Dir){
         $FilePath = $Dir + "\" + $File.Name
         write-host("File ",$FilePath)
         $Document = $Word.Documents.Open($FilePath)
-        $Hyperlinks = $Document.Hyperlinks
+        $Hyperlinks = $Document.Hyperlinks 
         
         if($Hyperlinks.count -gt 0)
         {
