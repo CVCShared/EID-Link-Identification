@@ -5,7 +5,7 @@ using module "C:\Users\Nash Ferguson\Desktop\El Dorado\link-search.psm1"
 $Date = Get-Date -Format s
 $CsvName = $Date.tostring() -replace ":","-"
 $Dir = "C:\Users\Nash Ferguson\Desktop\Target Dir"
-
+write-host("test")
 IdentifyLinks($Dir)
 #IdentifyDocxLinks($Dir)
 #IdentifyXlsxLinks($Dir)

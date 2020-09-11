@@ -2,17 +2,56 @@ using module "C:\Users\Nash Ferguson\Downloads\Communary.FileExtensions-master\C
 
 function IdentifyLinks($Dir){
     #XLSX and PPT needs to be in separate function, containing it in IdentifyLinks caused an error
+    write-host("doubng docx")
     Docx($Dir)
     Xlsx($Dir)
     Ppt($Dir)
 }
 
+function CheckLocks($Files, $Dir){
+    write-host("Checking Locks")
+    $OperableFiles = New-Object System.Collections.Generic.List[string]
+    foreach($File in $Files){
+        try
+        {
+            $FilePath = "$Dir\$File"
+            $Test = [System.IO.File]::Open($FilePath, 'Open', 'ReadWrite', 'None')
+            $Test.Close() #This line will unlock it (Supposedly)
+            $Test.Dispose()
+            $OperableFiles.Add[$File]
+        }
+        
+        catch 
+        {
+            if($_.Exception.Message -Match "being used by another process"){
+                $obj = [PSCustomObject]@{
+                    'Document Name' = $File
+                    'Error' = $_.Exception.Message  
+                }
+                $obj|Export-Csv -Path "$Dir\error-report.csv" -NoClobber -Append -NoTypeInformation
+            }
+
+            else{
+                $obj = [PSCustomObject]@{
+                    'Document Name' = $File
+                    'Error' = $_.Exception.Message    
+                }
+                $obj|Export-Csv -Path "$Dir\error-report.csv" -NoClobber -Append -NoTypeInformation
+            }
+        }
+    }
+    return $OperableFiles
+}
 function Docx($Dir){
     #Input: Directory
     #Purpose: Find all word files with hyperlinks, and make a record of them 
     #Output: Adds to CSV the file location, text, and destination of all hyperlinks in doc/x files
-    
+    write-host("Doing files")
     $DocxFiles = Invoke-FastFind -Recurse -Path $Dir -Filter "*.doc?"
+    Write-Host("Operable File output: ")
+   
+    $Array = CheckLocks($DocxFiles, $Dir)
+    write-host("Array ", $Array)
     $Word = New-Object -ComObject word.application
     $Word.visible = $false
 
@@ -95,6 +134,7 @@ function Ppt($Dir){
     #Output: Adds to CSV the file location, text, and destination of all hyperlinks in ppt/x files
 
     $PptFiles = Invoke-FastFind -Recurse -Path $Dir -Filter "*.ppt?"
+
     $PowerPt = New-Object -ComObject powerpoint.application
 
     foreach($File in $PptFiles){
@@ -115,7 +155,6 @@ function Ppt($Dir){
                         'Target' = $null
                     }
 
-
                     foreach ($Hyperlink in $Hyperlinks){
                             $obj.'Text' = $Hyperlink|Select-Object -ExpandProperty TextToDisplay
                             $obj.'Target' = $Hyperlink|Select-Object -ExpandProperty Address
@@ -131,3 +170,4 @@ function Ppt($Dir){
 }
 
 Export-ModuleMember -Function IdentifyLinks
+#Get-Process | ?{$_.ProcessName -eq "WINWORD"} | Stop-Process
