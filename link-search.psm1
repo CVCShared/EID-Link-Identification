@@ -2,27 +2,31 @@ using module "C:\Users\Nash Ferguson\Downloads\Communary.FileExtensions-master\C
 
 function IdentifyLinks($Dir){
     #XLSX and PPT needs to be in separate function, containing it in IdentifyLinks caused an error
-    write-host("doubng docx")
+    write-host("IDLinks dir is $Dir")
     Docx($Dir)
     Xlsx($Dir)
     Ppt($Dir)
 }
 
 function CheckLocks($Files, $Dir){
-    write-host("Checking Locks")
+    
+    write-host("Checking Locks on dir $Dir")
     $OperableFiles = New-Object System.Collections.Generic.List[string]
     foreach($File in $Files){
         try
-        {
+        {   
+            $File = $File.Name
             $FilePath = "$Dir\$File"
             $Test = [System.IO.File]::Open($FilePath, 'Open', 'ReadWrite', 'None')
             $Test.Close() #This line will unlock it (Supposedly)
             $Test.Dispose()
             $OperableFiles.Add[$File]
+            write-host("$File is unlocked")
         }
         
         catch 
         {
+            write-host("$File is locked")
             if($_.Exception.Message -Match "being used by another process"){
                 $obj = [PSCustomObject]@{
                     'Document Name' = $File
@@ -48,18 +52,23 @@ function Docx($Dir){
     #Output: Adds to CSV the file location, text, and destination of all hyperlinks in doc/x files
     write-host("Doing files")
     $DocxFiles = Invoke-FastFind -Recurse -Path $Dir -Filter "*.doc?"
-    Write-Host("Operable File output: ")
-   
-    $Array = CheckLocks($DocxFiles, $Dir)
+    $DocxFiles = [System.Collections.ArrayList] $DocxFiles
+    $RemoveFiles = @()
+    #Write-Host("Operable File output: ")
+    foreach ($File in $DocxFiles){
+        if(($File.Attributes|Out-String) -like "*Hidden*"){
+            $RemoveFiles += $File
+        }
+    }
+    foreach ($File in $RemoveFiles){
+        $DocxFiles.Remove($File)
+    }
+    $Array = CheckLocks $DocxFiles $Dir
     write-host("Array ", $Array)
     $Word = New-Object -ComObject word.application
     $Word.visible = $false
 
     foreach($File in $DocxFiles){
-
-        if(($File.Attributes|Out-String) -like "*Hidden*"){continue}
-
-        else{
         $FilePath = $Dir + "\" + $File.Name
         write-host("File ",$FilePath)
         $Document = $Word.Documents.Open($FilePath)
@@ -75,13 +84,10 @@ function Docx($Dir){
             foreach ($Hyperlink in $Hyperlinks){
                     $obj.'Text' = $Hyperlink|Select-Object -ExpandProperty TextToDisplay
                     $obj.'Target' = $Hyperlink|Select-Object -ExpandProperty Address
-                    $obj|Export-Csv -Path "$Dir\test-csv600.csv" -NoClobber -Append -NoTypeInformation
+                    #$obj|Export-Csv -Path "$Dir\test-csv600.csv" -NoClobber -Append -NoTypeInformation
                     
             }
         }
-        
-    }
-    
     }
 
 }
@@ -119,7 +125,7 @@ function Xlsx($Dir) {
                 foreach ($Hyperlink in $Hyperlinks){
                         $obj.'Text' = $Hyperlink|Select-Object -ExpandProperty TextToDisplay
                         $obj.'Target' = $Hyperlink|Select-Object -ExpandProperty Address
-                        $obj|Export-Csv -Path "$Dir\test-csv600.csv" -NoClobber -Append -NoTypeInformation
+                        #$obj|Export-Csv -Path "$Dir\test-csv600.csv" -NoClobber -Append -NoTypeInformation
                         
                 }
             }
@@ -158,8 +164,7 @@ function Ppt($Dir){
                     foreach ($Hyperlink in $Hyperlinks){
                             $obj.'Text' = $Hyperlink|Select-Object -ExpandProperty TextToDisplay
                             $obj.'Target' = $Hyperlink|Select-Object -ExpandProperty Address
-                            write-host($obj)
-                            $obj|Export-Csv -Path "$Dir\test-csv600.csv" -NoClobber -Append -NoTypeInformation
+                            #$obj|Export-Csv -Path "$Dir\test-csv600.csv" -NoClobber -Append -NoTypeInformation
                             
                     }
                 }
@@ -170,4 +175,6 @@ function Ppt($Dir){
 }
 
 Export-ModuleMember -Function IdentifyLinks
-#Get-Process | ?{$_.ProcessName -eq "WINWORD"} | Stop-Process
+
+#Get-Process | Where-Object {$_.ProcessName -eq "WINWORD"} | Stop-Process
+# REMOVE LINE 174
