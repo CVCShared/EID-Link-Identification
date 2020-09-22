@@ -4,7 +4,7 @@ using module "C:\Users\Nash Ferguson\Downloads\Communary.FileExtensions-master\C
 using module "C:\Users\Nash Ferguson\Desktop\EID-Link-Identification\link-search.psm1"
 $Date = Get-Date -Format s
 $CsvName = $Date.tostring() -replace ":","-"
-$Dir = "C:\Users\Nash Ferguson\Desktop\Target Dir"
+$Dir = "C:\Users\Nash Ferguson\Desktop\Small Docx"
 write-host("test")
 IdentifyLinks($Dir)
 #IdentifyDocxLinks($Dir)

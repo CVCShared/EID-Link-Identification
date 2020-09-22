@@ -1,8 +1,8 @@
 using module "C:\Users\Nash Ferguson\Downloads\Communary.FileExtensions-master\Communary.FileExtensions-master\Communary.FileExtensions.psm1"
-
+$DocxLinks = @{}
+$CsvName = ""
 function IdentifyLinks($Dir){
     #XLSX and PPT needs to be in separate function, containing it in IdentifyLinks caused an error
-    write-host("IDLinks dir is $Dir")
     Docx($Dir)
     Xlsx($Dir)
     Ppt($Dir)
@@ -11,7 +11,7 @@ function IdentifyLinks($Dir){
 function CheckLocks($Files, $Dir){
     
     write-host("Checking Locks on dir $Dir")
-    $OperableFiles = New-Object System.Collections.Generic.List[string]
+    $OperableFiles = [System.Collections.ArrayList]@()
     foreach($File in $Files){
         try
         {   
@@ -20,7 +20,7 @@ function CheckLocks($Files, $Dir){
             $Test = [System.IO.File]::Open($FilePath, 'Open', 'ReadWrite', 'None')
             $Test.Close() #This line will unlock it (Supposedly)
             $Test.Dispose()
-            $OperableFiles.Add[$File]
+            [void]$OperableFiles.Add($File)
             write-host("$File is unlocked")
         }
         
@@ -44,8 +44,11 @@ function CheckLocks($Files, $Dir){
             }
         }
     }
+    write-host("Operable file are ", $OperableFiles)
+
     return $OperableFiles
 }
+
 function Docx($Dir){
     #Input: Directory
     #Purpose: Find all word files with hyperlinks, and make a record of them 
@@ -54,42 +57,41 @@ function Docx($Dir){
     $DocxFiles = Invoke-FastFind -Recurse -Path $Dir -Filter "*.doc?"
     $DocxFiles = [System.Collections.ArrayList] $DocxFiles
     $RemoveFiles = @()
-    #Write-Host("Operable File output: ")
     foreach ($File in $DocxFiles){
         if(($File.Attributes|Out-String) -like "*Hidden*"){
             $RemoveFiles += $File
         }
     }
+
     foreach ($File in $RemoveFiles){
         $DocxFiles.Remove($File)
     }
+
     $Array = CheckLocks $DocxFiles $Dir
-    write-host("Array ", $Array)
     $Word = New-Object -ComObject word.application
     $Word.visible = $false
 
-    foreach($File in $DocxFiles){
-        $FilePath = $Dir + "\" + $File.Name
+    foreach($File in $Array){
+        $FilePath = $Dir + "\" + $File
         write-host("File ",$FilePath)
+        
         $Document = $Word.Documents.Open($FilePath)
         $Hyperlinks = $Document.Hyperlinks
         
         if($Hyperlinks.count -gt 0)
         {
-            $obj = [PSCustomObject]@{
-                'Document Name' = $FilePath
-                'Text' = $null
-                'Target' = $null
-            }
-            foreach ($Hyperlink in $Hyperlinks){
-                    $obj.'Text' = $Hyperlink|Select-Object -ExpandProperty TextToDisplay
-                    $obj.'Target' = $Hyperlink|Select-Object -ExpandProperty Address
-                    #$obj|Export-Csv -Path "$Dir\test-csv600.csv" -NoClobber -Append -NoTypeInformation
-                    
-            }
-        }
-    }
+            $DocxLinks[$FilePath] = [System.Collections.ArrayList]@()
 
+            foreach ($Hyperlink in $Hyperlinks){
+                $Value = @{$Hyperlink.TextToDisplay = $Hyperlink.Address} 
+
+                [void]$DocxLinks[$FilePath].Add($Value)
+            } 
+        }
+        $Document.Close()
+    }
+    $Word.Quit()
+    ExportToCsv($DocxLinks)
 }
 
 function Xlsx($Dir) {
@@ -97,11 +99,24 @@ function Xlsx($Dir) {
     #Purpose: Find all excel files with hyperlinks, and make a record of them 
     #Output: Adds to CSV the file location, text, and destination of all hyperlinks in xls/x files
 
+    $XlsxLinks = @{}
     $XlsxFiles = Invoke-FastFind -Recurse -Path $Dir -Filter "*.xls?"
+    $RemoveFiles = @()
+    foreach ($File in $XlsxFiles){
+        if(($File.Attributes|Out-String) -like "*Hidden*"){
+            $RemoveFiles += $File
+        }
+    }
+
+    foreach ($File in $RemoveFiles){
+        $XlsxFiles.Remove($File)
+    }
+
+    $Array = CheckLocks $XlsxFiles $Dir
     $excel = New-Object -ComObject excel.application
     $excel.visible = $false
 
-    foreach($File in $XlsxFiles){
+    foreach($File in $Array){
         
         if(($File.Attributes|Out-String) -like "*Hidden*"){continue} 
         
@@ -116,22 +131,20 @@ function Xlsx($Dir) {
                 write-host("File ", $FilePath)
 
                 if($Hyperlinks.count -gt 0){
-                $obj = [PSCustomObject]@{
-                    'Document Name' = $FilePath
-                    'Text' = $null
-                    'Target' = $null
-                }
+                    $XlsxLinks[$FilePath] = [System.Collections.ArrayList]@()
 
-                foreach ($Hyperlink in $Hyperlinks){
-                        $obj.'Text' = $Hyperlink|Select-Object -ExpandProperty TextToDisplay
-                        $obj.'Target' = $Hyperlink|Select-Object -ExpandProperty Address
-                        #$obj|Export-Csv -Path "$Dir\test-csv600.csv" -NoClobber -Append -NoTypeInformation
-                        
-                }
+                    foreach ($Hyperlink in $Hyperlinks){
+                        $Value = @{$Hyperlink.TextToDisplay = $Hyperlink.Address} 
+                        [void]$XlsxLinks[$FilePath].Add($Value)
+                    }
+
             }
         }
+        $workbook.Close()
         }
     }
+    $Excel.Quit()
+    ExportToCsv($XlsxLinks)
 }
 
 function Ppt($Dir){
@@ -139,15 +152,28 @@ function Ppt($Dir){
     #Purpose: Find all powerpoint files with hyperlinks, and make a record of them 
     #Output: Adds to CSV the file location, text, and destination of all hyperlinks in ppt/x files
 
+    $PptLinks = @{}
     $PptFiles = Invoke-FastFind -Recurse -Path $Dir -Filter "*.ppt?"
+    $RemoveFiles = @()
+    foreach ($File in $PptFiles){
+        if(($File.Attributes|Out-String) -like "*Hidden*"){
+            $RemoveFiles += $File
+        }
+    }
 
+    foreach ($File in $RemoveFiles){
+        $PptFiles.Remove($File)
+    }
+
+    $Array = CheckLocks $PptFiles $Dir
     $PowerPt = New-Object -ComObject powerpoint.application
 
-    foreach($File in $PptFiles){
+    foreach($File in $Array){
         if(($File.Attributes|Out-String) -like "*Hidden*"){continue} 
 
         else{
-            $FilePath = $Dir + "\" + $File.name
+            $FilePath = $Dir + "\" + $File
+            write-host("PPT file path is ", $FilePath)
             $Ppt = $PowerPt.Presentations.Open($FilePath)
             $Slides = $Ppt.Slides
 
@@ -155,26 +181,39 @@ function Ppt($Dir){
                 $Hyperlinks = $Slide.Hyperlinks
 
                 if($Hyperlinks.count -gt 0){
-                    $obj = [PSCustomObject]@{
-                        'Document Name' = $FilePath
-                        'Text' = $null
-                        'Target' = $null
-                    }
+                    $PptLinks[$FilePath] = [System.Collections.ArrayList]@()
 
                     foreach ($Hyperlink in $Hyperlinks){
-                            $obj.'Text' = $Hyperlink|Select-Object -ExpandProperty TextToDisplay
-                            $obj.'Target' = $Hyperlink|Select-Object -ExpandProperty Address
-                            #$obj|Export-Csv -Path "$Dir\test-csv600.csv" -NoClobber -Append -NoTypeInformation
-                            
-                    }
+                        $Value = @{$Hyperlink.TextToDisplay = $Hyperlink.Address} 
+                        [void]$PptLinks[$FilePath].Add($Value)
+                    } 
+
                 }
             }
+            
             }
+            $Ppt.Close()
     }
+    $PowerPt.Quit()
+    ExportToCsv($PptLinks)
+}
+
+function ExportToCsv($LinkList){
+    $LinkList.GetEnumerator() | % {
+        $FileName = $_.key
+        $Links = $_.value
     
+        foreach ($Link in $Links){
+            $Link.GetEnumerator()|ForEach-Object{
+                $obj = [PSCustomObject]@{
+                    'Document Name' = $FileName
+                    'Text' = $_.key
+                    'Target' = $_.value
+                }
+                $obj|Export-Csv -Path "$Dir\csv-testing.csv" -NoClobber -Append -NoTypeInformation
+        }
+    }
+}
 }
 
 Export-ModuleMember -Function IdentifyLinks
-
-#Get-Process | Where-Object {$_.ProcessName -eq "WINWORD"} | Stop-Process
-# REMOVE LINE 174
