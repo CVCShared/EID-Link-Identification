@@ -21,10 +21,10 @@ function Docx($Dir){
     $DocxFiles = [System.Collections.ArrayList] $DocxFiles
     
     #Remove hidden files
-    $RemoveFiles = @()
+    [System.Collections.ArrayList] $RemoveFiles = @()
     foreach ($File in $DocxFiles){
         if(($File.Attributes|Out-String) -like "*Hidden*"){
-            $RemoveFiles += $File
+            $RemoveFiles.add($File)
         }
     }
 
@@ -33,12 +33,12 @@ function Docx($Dir){
     }
 
     #Check which files are locked, and keep unlocked files
-    $Array = CheckLocks $DocxFiles $Dir
+    $DocxFiles = CheckLocks $DocxFiles $Dir
     $Word = New-Object -ComObject word.application
     $Word.visible = $false
 
     #Look for links in unlocked files
-    foreach($File in $Array){
+    foreach($File in $DocxFiles){
         $FilePath = $Dir + "\" + $File
         write-host("File ",$FilePath)
         
@@ -61,19 +61,19 @@ function Docx($Dir){
     ExportToCsv($DocxLinks)
 }
 
-function Xlsx($Dir) {
+function Xlsx($Dir){
     #Input: Directory
     #Purpose: Find all excel files with hyperlinks, and make a record of them 
     #Output: Adds to CSV the file location, text, and destination of all hyperlinks in xls/x files
 
     $XlsxLinks = @{}
     $XlsxFiles = Invoke-FastFind -Recurse -Path $Dir -Filter "*.xls?"
-    
+    $XlsxFiles = [System.Collections.ArrayList]$XlsxFiles
     #Remove hidden files
-    $RemoveFiles = @()
+    [System.Collections.ArrayList]$RemoveFiles = @()
     foreach ($File in $XlsxFiles){
         if(($File.Attributes|Out-String) -like "*Hidden*"){
-            $RemoveFiles += $File
+            $RemoveFiles.add($File)
         }
     }
 
@@ -82,17 +82,13 @@ function Xlsx($Dir) {
     }
 
     #Check which files are locked, and keep unlocked files
-    $Array = CheckLocks $XlsxFiles $Dir
+    $XlsxFiles = CheckLocks $XlsxFiles $Dir
     $excel = New-Object -ComObject excel.application
     $excel.visible = $false
 
     #Look for links in unlocked files
-    foreach($File in $Array){
-        
-        if(($File.Attributes|Out-String) -like "*Hidden*"){continue} 
-        
-        else{
-            $FilePath = $Dir + "\" + $File.name
+    foreach($File in $XlsxFiles){
+            $FilePath = $Dir + "\" + $File
             $workbook = $excel.Workbooks.Open($FilePath)
             $WorksheetNum = 0
 
@@ -113,7 +109,7 @@ function Xlsx($Dir) {
             }
         }
         $workbook.Close()
-        }
+        
     }
     $Excel.Quit()
     ExportToCsv($XlsxLinks)
@@ -128,10 +124,10 @@ function Ppt($Dir){
     $PptFiles = Invoke-FastFind -Recurse -Path $Dir -Filter "*.ppt?"
     
     #Remove hidden files
-    $RemoveFiles = @()
+    [System.Collections.ArrayList] $RemoveFiles = @()
     foreach ($File in $PptFiles){
         if(($File.Attributes|Out-String) -like "*Hidden*"){
-            $RemoveFiles += $File
+            $RemoveFiles.add($File)
         }
     }
 
@@ -140,14 +136,11 @@ function Ppt($Dir){
     }
 
     #Check which files are locked, and keep unlocked files
-    $Array = CheckLocks $PptFiles $Dir
+    $PptFiles = CheckLocks $PptFiles $Dir
     $PowerPt = New-Object -ComObject powerpoint.application
-
+    #$PowerPt.visible = $false
     #Look for links in unlocked files
-    foreach($File in $Array){
-        if(($File.Attributes|Out-String) -like "*Hidden*"){continue} 
-
-        else{
+    foreach($File in $PptFiles){
             $FilePath = $Dir + "\" + $File
             write-host("PPT file path is ", $FilePath)
             $Ppt = $PowerPt.Presentations.Open($FilePath)
@@ -166,7 +159,7 @@ function Ppt($Dir){
                     } 
 
                 }
-            }
+            
             
             }
             $Ppt.Close()
@@ -188,36 +181,24 @@ function CheckLocks($Files, $Dir){
             $Test.Close() #This line will unlock it (Supposedly)
             $Test.Dispose()
             [void]$OperableFiles.Add($File)
-            write-host("$File is unlocked")
         }
         
         catch 
         {
-            write-host("$File is locked")
-            if($_.Exception.Message -Match "being used by another process"){
-                $obj = [PSCustomObject]@{
-                    'Document Name' = $File
-                    'Error' = $_.Exception.Message  
-                }
-                $obj|Export-Csv -Path "$Dir\error-report.csv" -NoClobber -Append -NoTypeInformation
+            $obj = [PSCustomObject]@{
+                'Document Name' = $File
+                'Error' = $_.Exception.Message    
             }
-
-            else{
-                $obj = [PSCustomObject]@{
-                    'Document Name' = $File
-                    'Error' = $_.Exception.Message    
-                }
-                $obj|Export-Csv -Path "$Dir\error-report.csv" -NoClobber -Append -NoTypeInformation
-            }
+            $obj|Export-Csv -Path "$Dir\error-report.csv" -NoClobber -Append -NoTypeInformation
+            
         }
     }
-    write-host("Operable file are ", $OperableFiles)
 
     return $OperableFiles
 }
 
 function ExportToCsv($LinkList){
-    $LinkList.GetEnumerator() | % {
+    $LinkList.GetEnumerator() | ForEach-Object {
         $FileName = $_.key
         $Links = $_.value
     
