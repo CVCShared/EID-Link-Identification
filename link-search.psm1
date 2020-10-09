@@ -17,11 +17,11 @@ function Docx($Dir){
     #Output: Adds to CSV the file location, text, and destination of all hyperlinks in doc/x files
     
     $DocxLinks = @{}
-    $DocxFiles = Invoke-FastFind -Recurse -Path $Dir -Filter "*.doc?"
+    $DocxFiles = Invoke-FastFind -Recurse -Path $Dir -Filter "*.doc?" -Hidden -AttributeFilterMode Exclude
     $DocxFiles = [System.Collections.ArrayList] $DocxFiles
     
     #Remove hidden files
-    [System.Collections.ArrayList] $RemoveFiles = @()
+    <# [System.Collections.ArrayList] $RemoveFiles = @()
     foreach ($File in $DocxFiles){
         if(($File.Attributes|Out-String) -like "*Hidden*"){
             $RemoveFiles.add($File)
@@ -30,7 +30,7 @@ function Docx($Dir){
 
     foreach ($File in $RemoveFiles){
         $DocxFiles.Remove($File)
-    }
+    } #>
 
     #Check which files are locked, and keep unlocked files
     $DocxFiles = CheckLocks $DocxFiles $Dir
@@ -39,7 +39,31 @@ function Docx($Dir){
 
     #Look for links in unlocked files
     foreach($File in $DocxFiles){
-        $FilePath = $Dir + "\" + $File
+
+        # NEW CODE
+        $FilePath = $Dir + "\" + $File.name
+        write-host("File ", $FilePath)
+        $Document = $Word.Documents.Open($FilePath)
+        $Hyperlinks = $Document.Hyperlinks
+        $Shapes = $Document.inlineshapes
+        $DocxLinks[$FilePath] = [System.Collections.ArrayList]@()
+
+
+        foreach($Shape in $Shapes){
+            $Value = @{"Shape " = $Shape.linkformat.sourcefullname}
+            [void]$DocxLinks[$FilePath].Add($Value)
+        }
+        
+        foreach ($Hyperlink in $Hyperlinks){
+            $Value = @{$Hyperlink.TextToDisplay = $Hyperlink.Address} 
+            [void]$DocxLinks[$FilePath].Add($Value)
+        } 
+
+        $Document.Close()
+        
+
+        # OLD CODE
+        <# $FilePath = $Dir + "\" + $File
         write-host("File ",$FilePath)
         
         $Document = $Word.Documents.Open($FilePath)
@@ -55,7 +79,7 @@ function Docx($Dir){
                 [void]$DocxLinks[$FilePath].Add($Value)
             } 
         }
-        $Document.Close()
+        $Document.Close() #>
     }
     $Word.Quit()
     ExportToCsv($DocxLinks)
@@ -67,10 +91,10 @@ function Xlsx($Dir){
     #Output: Adds to CSV the file location, text, and destination of all hyperlinks in xls/x files
 
     $XlsxLinks = @{}
-    $XlsxFiles = Invoke-FastFind -Recurse -Path $Dir -Filter "*.xls?"
+    $XlsxFiles = Invoke-FastFind -Recurse -Path $Dir -Filter "*.xls?" -Hidden -AttributeFilterMode Exclude
     $XlsxFiles = [System.Collections.ArrayList]$XlsxFiles
     #Remove hidden files
-    [System.Collections.ArrayList]$RemoveFiles = @()
+    <# [System.Collections.ArrayList]$RemoveFiles = @()
     foreach ($File in $XlsxFiles){
         if(($File.Attributes|Out-String) -like "*Hidden*"){
             $RemoveFiles.add($File)
@@ -79,7 +103,7 @@ function Xlsx($Dir){
 
     foreach ($File in $RemoveFiles){
         $XlsxFiles.Remove($File)
-    }
+    } #>
 
     #Check which files are locked, and keep unlocked files
     $XlsxFiles = CheckLocks $XlsxFiles $Dir
@@ -121,10 +145,10 @@ function Ppt($Dir){
     #Output: Adds to CSV the file location, text, and destination of all hyperlinks in ppt/x files
 
     $PptLinks = @{}
-    $PptFiles = Invoke-FastFind -Recurse -Path $Dir -Filter "*.ppt?"
+    $PptFiles = Invoke-FastFind -Recurse -Path $Dir -Filter "*.ppt?" -Hidden -AttributeFilterMode Exclude
     
     #Remove hidden files
-    [System.Collections.ArrayList] $RemoveFiles = @()
+    <# [System.Collections.ArrayList] $RemoveFiles = @()
     foreach ($File in $PptFiles){
         if(($File.Attributes|Out-String) -like "*Hidden*"){
             $RemoveFiles.add($File)
@@ -133,7 +157,7 @@ function Ppt($Dir){
 
     foreach ($File in $RemoveFiles){
         $PptFiles.Remove($File)
-    }
+    } #>
 
     #Check which files are locked, and keep unlocked files
     $PptFiles = CheckLocks $PptFiles $Dir
@@ -141,13 +165,32 @@ function Ppt($Dir){
     #$PowerPt.visible = $false
     #Look for links in unlocked files
     foreach($File in $PptFiles){
+
+        # NEW CODE, has shape link finding
             $FilePath = $Dir + "\" + $File
             write-host("File ", $FilePath)
             $Ppt = $PowerPt.Presentations.Open($FilePath)
             $Slides = $Ppt.Slides
 
             Foreach ($Slide in $Slides){
+                $Shapes = $Slide.shapes
                 $Hyperlinks = $Slide.Hyperlinks
+
+                foreach($Shape in $Shapes){
+                    $Value = @{"Shape" = $Shape.linkformat.sourcefullname}
+                    [void]$PptLinks[$FilePath].Add($Value)
+                }
+
+                foreach($Hyperlink in $Hyperlinks){
+                    $Value = @{$Hyperlink.TextToDisplay = $Hyperlink.Address} 
+                    [void]$PptLinks[$FilePath].Add($Value)
+                }
+
+
+
+            # OLD CODE, uncomment if necessary
+
+                <# $Hyperlinks = $Slide.Hyperlinks
                 
                 #Add document to hash table with links and their text
                 if($Hyperlinks.count -gt 0){
@@ -158,7 +201,7 @@ function Ppt($Dir){
                         [void]$PptLinks[$FilePath].Add($Value)
                     } 
 
-                }
+                } #>
             
             
             }
