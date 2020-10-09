@@ -142,7 +142,7 @@ function Ppt($Dir){
     #Look for links in unlocked files
     foreach($File in $PptFiles){
             $FilePath = $Dir + "\" + $File
-            write-host("PPT file path is ", $FilePath)
+            write-host("File ", $FilePath)
             $Ppt = $PowerPt.Presentations.Open($FilePath)
             $Slides = $Ppt.Slides
 
