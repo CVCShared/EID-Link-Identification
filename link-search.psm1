@@ -41,7 +41,7 @@ function Docx($Dir){
     foreach($File in $DocxFiles){
 
         # NEW CODE
-        $FilePath = $Dir + "\" + $File.name
+        $FilePath = $Dir + "\" + $File
         write-host("File ", $FilePath)
         $Document = $Word.Documents.Open($FilePath)
         $Hyperlinks = $Document.Hyperlinks
@@ -109,7 +109,7 @@ function Xlsx($Dir){
     $XlsxFiles = CheckLocks $XlsxFiles $Dir
     $excel = New-Object -ComObject excel.application
     $excel.visible = $false
-
+    Write-Host("XLSX Files : ", $XlsxFiles)
     #Look for links in unlocked files
     foreach($File in $XlsxFiles){
             $FilePath = $Dir + "\" + $File
@@ -162,6 +162,7 @@ function Ppt($Dir){
     #Check which files are locked, and keep unlocked files
     $PptFiles = CheckLocks $PptFiles $Dir
     $PowerPt = New-Object -ComObject powerpoint.application
+    write-host("PPT Files : ", $PptFiles)
     #$PowerPt.visible = $false
     #Look for links in unlocked files
     foreach($File in $PptFiles){
@@ -169,13 +170,13 @@ function Ppt($Dir){
         # NEW CODE, has shape link finding
             $FilePath = $Dir + "\" + $File
             write-host("File ", $FilePath)
-            $Ppt = $PowerPt.Presentations.Open($FilePath)
+            $Ppt = $PowerPt.Presentations.Open($FilePath, [Microsoft.Office.Core.MsoTriState]::msoFalse,[Microsoft.Office.Core.MsoTriState]::msoFalse,[Microsoft.Office.Core.MsoTriState]::msoFalse)
             $Slides = $Ppt.Slides
 
             Foreach ($Slide in $Slides){
                 $Shapes = $Slide.shapes
                 $Hyperlinks = $Slide.Hyperlinks
-
+                $PptLinks[$FilePath] = [System.Collections.ArrayList]@()
                 foreach($Shape in $Shapes){
                     $Value = @{"Shape" = $Shape.linkformat.sourcefullname}
                     [void]$PptLinks[$FilePath].Add($Value)
@@ -252,7 +253,7 @@ function ExportToCsv($LinkList){
                     'Text' = $_.key
                     'Target' = $_.value
                 }
-                $obj|Export-Csv -Path "$Dir\csv-testing.csv" -NoClobber -Append -NoTypeInformation
+                $obj|Export-Csv -Path "$Dir\sunday-testing.csv" -NoClobber -Append -NoTypeInformation
         }
     }
 }
