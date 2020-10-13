@@ -1,0 +1,14 @@
+READ ME:
+To use script:
+
+1- Open Hyperlinks-main.ps1 and link-search.psm1, and change the 
+path to the module "Communary.FileExtensions-master" to the appropriate
+path for your computer
+
+2- Open hyperlinks-main.ps1 and change the module path for link-search 
+to the path to "link-search.psm1" on your computer
+
+3- Run hyperlinks-main.ps1, and enter the directory to search for links on
+
+4- Go to the directory that you searched for links in to find the report
+of links found and files that could not be opened 

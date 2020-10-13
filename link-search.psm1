@@ -1,5 +1,9 @@
 using module "C:\Users\Nash Ferguson\Downloads\Communary.FileExtensions-master\Communary.FileExtensions-master\Communary.FileExtensions.psm1"
-function IdentifyLinks($Dir){
+
+
+function IdentifyLinks($Dir, $CsvName){
+    $global:CsvName = $CsvName
+    $Dir = $Dir
     #XLSX and PPT needs to be in separate function, containing it in IdentifyLinks caused an error
     Docx($Dir)
     Xlsx($Dir)
@@ -213,7 +217,7 @@ function Ppt($Dir){
 }
 
 function CheckLocks($Files, $Dir){
-    
+    $CsvName = $Global:CsvName
     write-host("Checking Locks on dir $Dir")
     $OperableFiles = [System.Collections.ArrayList]@()
     foreach($File in $Files){
@@ -233,7 +237,7 @@ function CheckLocks($Files, $Dir){
                 'Document Name' = $File
                 'Error' = $_.Exception.Message    
             }
-            $obj|Export-Csv -Path "$Dir\error-report.csv" -NoClobber -Append -NoTypeInformation
+            $obj|Export-Csv -Path "$Dir\$CsvName error-report.csv" -NoClobber -Append -NoTypeInformation
             
         }
     }
@@ -242,6 +246,7 @@ function CheckLocks($Files, $Dir){
 }
 
 function ExportToCsv($LinkList){
+    $CsvName = $Global:CsvName
     $LinkList.GetEnumerator() | ForEach-Object {
         $FileName = $_.key
         $Links = $_.value
@@ -253,7 +258,7 @@ function ExportToCsv($LinkList){
                     'Text' = $_.key
                     'Target' = $_.value
                 }
-                $obj|Export-Csv -Path "$Dir\sunday-testing.csv" -NoClobber -Append -NoTypeInformation
+                $obj|Export-Csv -Path "$Dir\$CsvName" -NoClobber -Append -NoTypeInformation
         }
     }
 }
