@@ -4,6 +4,7 @@ using module "C:\Users\Nash Ferguson\Downloads\Communary.FileExtensions-master\C
 function IdentifyLinks($Dir, $CsvName){
     $global:CsvName = $CsvName
     $Dir = $Dir
+
     #XLSX and PPT needs to be in separate function, containing it in IdentifyLinks caused an error
     Docx($Dir)
     Xlsx($Dir)
@@ -23,24 +24,13 @@ function Docx($Dir){
     $DocxLinks = @{}
     $DocxFiles = Invoke-FastFind -Recurse -Path $Dir -Filter "*.doc?" -Hidden -AttributeFilterMode Exclude
     $DocxFiles = [System.Collections.ArrayList] $DocxFiles
-    
-    #Remove hidden files
-    <# [System.Collections.ArrayList] $RemoveFiles = @()
-    foreach ($File in $DocxFiles){
-        if(($File.Attributes|Out-String) -like "*Hidden*"){
-            $RemoveFiles.add($File)
-        }
-    }
 
-    foreach ($File in $RemoveFiles){
-        $DocxFiles.Remove($File)
-    } #>
 
     #Check which files are locked, and keep unlocked files
     $DocxFiles = CheckLocks $DocxFiles $Dir
     $Word = New-Object -ComObject word.application
     $Word.visible = $false
-
+    write-host("Docx Files : $DocxFiles")
     #Look for links in unlocked files
     foreach($File in $DocxFiles){
 
@@ -51,7 +41,6 @@ function Docx($Dir){
         $Hyperlinks = $Document.Hyperlinks
         $Shapes = $Document.inlineshapes
         $DocxLinks[$FilePath] = [System.Collections.ArrayList]@()
-
 
         foreach($Shape in $Shapes){
             $Value = @{"Shape " = $Shape.linkformat.sourcefullname}
@@ -97,17 +86,6 @@ function Xlsx($Dir){
     $XlsxLinks = @{}
     $XlsxFiles = Invoke-FastFind -Recurse -Path $Dir -Filter "*.xls?" -Hidden -AttributeFilterMode Exclude
     $XlsxFiles = [System.Collections.ArrayList]$XlsxFiles
-    #Remove hidden files
-    <# [System.Collections.ArrayList]$RemoveFiles = @()
-    foreach ($File in $XlsxFiles){
-        if(($File.Attributes|Out-String) -like "*Hidden*"){
-            $RemoveFiles.add($File)
-        }
-    }
-
-    foreach ($File in $RemoveFiles){
-        $XlsxFiles.Remove($File)
-    } #>
 
     #Check which files are locked, and keep unlocked files
     $XlsxFiles = CheckLocks $XlsxFiles $Dir
@@ -119,6 +97,7 @@ function Xlsx($Dir){
             $FilePath = $Dir + "\" + $File
             $workbook = $excel.Workbooks.Open($FilePath)
             $WorksheetNum = 0
+            $XlsxLinks[$FilePath] = [System.Collections.ArrayList]@()
 
             foreach($Worksheet in $workbook.Worksheets){
                 $WorksheetNum++
@@ -127,17 +106,16 @@ function Xlsx($Dir){
 
                 #Add document to hash table with links and their text
                 if($Hyperlinks.count -gt 0){
-                    $XlsxLinks[$FilePath] = [System.Collections.ArrayList]@()
 
                     foreach ($Hyperlink in $Hyperlinks){
                         $Value = @{$Hyperlink.TextToDisplay = $Hyperlink.Address} 
                         [void]$XlsxLinks[$FilePath].Add($Value)
                     }
 
+                }
             }
-        }
+            
         $workbook.Close()
-        
     }
     $Excel.Quit()
     ExportToCsv($XlsxLinks)
@@ -150,18 +128,6 @@ function Ppt($Dir){
 
     $PptLinks = @{}
     $PptFiles = Invoke-FastFind -Recurse -Path $Dir -Filter "*.ppt?" -Hidden -AttributeFilterMode Exclude
-    
-    #Remove hidden files
-    <# [System.Collections.ArrayList] $RemoveFiles = @()
-    foreach ($File in $PptFiles){
-        if(($File.Attributes|Out-String) -like "*Hidden*"){
-            $RemoveFiles.add($File)
-        }
-    }
-
-    foreach ($File in $RemoveFiles){
-        $PptFiles.Remove($File)
-    } #>
 
     #Check which files are locked, and keep unlocked files
     $PptFiles = CheckLocks $PptFiles $Dir
@@ -176,14 +142,17 @@ function Ppt($Dir){
             write-host("File ", $FilePath)
             $Ppt = $PowerPt.Presentations.Open($FilePath, [Microsoft.Office.Core.MsoTriState]::msoFalse,[Microsoft.Office.Core.MsoTriState]::msoFalse,[Microsoft.Office.Core.MsoTriState]::msoFalse)
             $Slides = $Ppt.Slides
+            $PptLinks[$FilePath] = [System.Collections.ArrayList]@()
 
             Foreach ($Slide in $Slides){
                 $Shapes = $Slide.shapes
                 $Hyperlinks = $Slide.Hyperlinks
-                $PptLinks[$FilePath] = [System.Collections.ArrayList]@()
+                
                 foreach($Shape in $Shapes){
-                    $Value = @{"Shape" = $Shape.linkformat.sourcefullname}
-                    [void]$PptLinks[$FilePath].Add($Value)
+                    if (-not ($null -eq $Shape.linkformat.sourcefullname )){
+                        $Value = @{"Shape" = $Shape.linkformat.sourcefullname}
+                        [void]$PptLinks[$FilePath].Add($Value)
+                    }
                 }
 
                 foreach($Hyperlink in $Hyperlinks){
