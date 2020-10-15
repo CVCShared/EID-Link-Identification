@@ -41,38 +41,18 @@ function Docx($Dir){
         $Hyperlinks = $Document.Hyperlinks
         $Shapes = $Document.inlineshapes
         $DocxLinks[$FilePath] = [System.Collections.ArrayList]@()
-
+        #Check for linked shapes (charts, data tables, stuff like that)
         foreach($Shape in $Shapes){
             $Value = @{"Shape " = $Shape.linkformat.sourcefullname}
             [void]$DocxLinks[$FilePath].Add($Value)
         }
-        
+        #Check for linked text
         foreach ($Hyperlink in $Hyperlinks){
             $Value = @{$Hyperlink.TextToDisplay = $Hyperlink.Address} 
             [void]$DocxLinks[$FilePath].Add($Value)
         } 
 
         $Document.Close()
-        
-
-        # OLD CODE
-        <# $FilePath = $Dir + "\" + $File
-        write-host("File ",$FilePath)
-        
-        $Document = $Word.Documents.Open($FilePath)
-        $Hyperlinks = $Document.Hyperlinks
-        
-        #Add document to hash table with links and their text
-        if($Hyperlinks.count -gt 0)
-        {
-            $DocxLinks[$FilePath] = [System.Collections.ArrayList]@()
-            foreach ($Hyperlink in $Hyperlinks){
-                $Value = @{$Hyperlink.TextToDisplay = $Hyperlink.Address} 
-
-                [void]$DocxLinks[$FilePath].Add($Value)
-            } 
-        }
-        $Document.Close() #>
     }
     $Word.Quit()
     ExportToCsv($DocxLinks)
@@ -104,21 +84,28 @@ function Xlsx($Dir){
                 $Hyperlinks = $workbook.Worksheets($WorksheetNum).Hyperlinks
                 write-host("File ", $FilePath)
 
-                #Add document to hash table with links and their text
+                #Add hyperlinks to hash table with links and their text
                 if($Hyperlinks.count -gt 0){
-
                     foreach ($Hyperlink in $Hyperlinks){
                         $Value = @{$Hyperlink.TextToDisplay = $Hyperlink.Address} 
                         [void]$XlsxLinks[$FilePath].Add($Value)
                     }
-
                 }
+
+                # Need to add looking for shapes
             }
             
         $workbook.Close()
     }
     $Excel.Quit()
     ExportToCsv($XlsxLinks)
+
+
+     # !!!!! IMPORTANT EXCEL NOTE !!!!!!# 
+     # When making anything to change the address, note that excel is stupid
+     # and uses "../"^n instead of a full path. Something will have to be built
+     # to take a certain portion of the $dir based on whatever "../" is there
+     
 }
 
 function Ppt($Dir){
@@ -148,35 +135,19 @@ function Ppt($Dir){
                 $Shapes = $Slide.shapes
                 $Hyperlinks = $Slide.Hyperlinks
                 
+                #Check for linked shapes (charts, data tables, stuff like that)
                 foreach($Shape in $Shapes){
                     if (-not ($null -eq $Shape.linkformat.sourcefullname )){
                         $Value = @{"Shape" = $Shape.linkformat.sourcefullname}
                         [void]$PptLinks[$FilePath].Add($Value)
                     }
                 }
-
+                
+                #Check for linked text
                 foreach($Hyperlink in $Hyperlinks){
                     $Value = @{$Hyperlink.TextToDisplay = $Hyperlink.Address} 
                     [void]$PptLinks[$FilePath].Add($Value)
                 }
-
-
-
-            # OLD CODE, uncomment if necessary
-
-                <# $Hyperlinks = $Slide.Hyperlinks
-                
-                #Add document to hash table with links and their text
-                if($Hyperlinks.count -gt 0){
-                    $PptLinks[$FilePath] = [System.Collections.ArrayList]@()
-
-                    foreach ($Hyperlink in $Hyperlinks){
-                        $Value = @{$Hyperlink.TextToDisplay = $Hyperlink.Address} 
-                        [void]$PptLinks[$FilePath].Add($Value)
-                    } 
-
-                } #>
-            
             
             }
             $Ppt.Close()
@@ -190,6 +161,7 @@ function CheckLocks($Files, $Dir){
     write-host("Checking Locks on dir $Dir")
     $OperableFiles = [System.Collections.ArrayList]@()
     foreach($File in $Files){
+        #Try to open file in IO stream, catch errors and record
         try
         {   
             $File = $File.Name
