@@ -1,6 +1,5 @@
 using module "C:\Users\Nash Ferguson\Downloads\Communary.FileExtensions-master\Communary.FileExtensions-master\Communary.FileExtensions.psm1"
 
-
 function IdentifyLinks($Dir, $CsvName){
     $global:CsvName = $CsvName
     $Dir = $Dir
@@ -82,6 +81,7 @@ function Xlsx($Dir){
             foreach($Worksheet in $workbook.Worksheets){
                 $WorksheetNum++
                 $Hyperlinks = $workbook.Worksheets($WorksheetNum).Hyperlinks
+                $Charts = $Worksheet.chartobjects()
                 write-host("File ", $FilePath)
 
                 #Add hyperlinks to hash table with links and their text
@@ -92,8 +92,43 @@ function Xlsx($Dir){
                     }
                 }
 
-                # Need to add looking for shapes
+                try{
+                # Try to get a list of all charts, catch if there are none
+                $charts = $worksheet.chartobjects()
+                foreach ($chart in $charts){
+                    # Get cell formulas, which contain links to source data
+                    $Formulas = $chart.chart.seriescollection()|select-object Formula
+                    $FormulasSeen = [System.Collections.ArrayList]@()
+                    
+                    # Foreach formula, use a regex to take out the link, ignoring duplicate links from the 
+                    # same chart
+                    foreach ($Formula in $Formulas){
+                        $link = $Formula.psobject.properties.value
+                        $regex = [regex]::new("'(.+?)'")
+                        $link = $regex.matches($link)
+
+                        if ($link.count -eq 0){
+                            write-host("No link")
+                            continue
+                        }
+                        if ($FormulasSeen.contains($link[1].tostring())){
+                            write-host("Seen link already")
+                            continue
+                        }
+                        else{
+                            $Value = @{"Chart" = $link[1].tostring()} 
+                            [void]$XlsxLinks[$FilePath].Add($Value)
+                            $FormulasSeen.add($link[1].tostring())
+                        }
+                    }
+                }
+               }
+            
+
+            catch{
+                "No charts"
             }
+        }
             
         $workbook.Close()
     }

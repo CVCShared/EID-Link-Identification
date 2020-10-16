@@ -6,6 +6,7 @@ $File,
 $WriteDest,
 $DirName,
 $NumDuplicates,
+$NumDirs,
 $Int = 0
 )
 
@@ -21,5 +22,9 @@ while ($Int -lt $NumDuplicates){
 }
 
 if ($MakeDir){
-    New-Item -ItemType Directory -Path $DirName
+    while ($Int -lt $NumDirs){
+        New-Item -ItemType Directory -Path "$DirName-$Int"
+        $Int += 1
+    }
+    
 }
