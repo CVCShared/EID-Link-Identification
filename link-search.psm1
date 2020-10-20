@@ -29,13 +29,13 @@ function Docx($Dir){
     $DocxFiles = CheckLocks $DocxFiles $Dir
     $Word = New-Object -ComObject word.application
     $Word.visible = $false
-    write-host("Docx Files : $DocxFiles")
+    write-host("Docx Files to read are : $DocxFiles")
     #Look for links in unlocked files
     foreach($File in $DocxFiles){
 
         # NEW CODE
         $FilePath = $Dir + "\" + $File
-        write-host("File ", $FilePath)
+        write-host("File currently being read: ", $FilePath)
         $Document = $Word.Documents.Open($FilePath)
         $Hyperlinks = $Document.Hyperlinks
         $Shapes = $Document.inlineshapes
@@ -70,7 +70,7 @@ function Xlsx($Dir){
     $XlsxFiles = CheckLocks $XlsxFiles $Dir
     $excel = New-Object -ComObject excel.application
     $excel.visible = $false
-    Write-Host("XLSX Files : ", $XlsxFiles)
+    Write-Host("XLSX Files to read are : ", $XlsxFiles)
     #Look for links in unlocked files
     foreach($File in $XlsxFiles){
             $FilePath = $Dir + "\" + $File
@@ -82,7 +82,7 @@ function Xlsx($Dir){
                 $WorksheetNum++
                 $Hyperlinks = $workbook.Worksheets($WorksheetNum).Hyperlinks
                 $Charts = $Worksheet.chartobjects()
-                write-host("File ", $FilePath)
+                write-host("File currently being read : ", $FilePath)
 
                 #Add hyperlinks to hash table with links and their text
                 if($Hyperlinks.count -gt 0){
@@ -108,11 +108,11 @@ function Xlsx($Dir){
                         $link = $regex.matches($link)
 
                         if ($link.count -eq 0){
-                            write-host("No link")
+                            write-host("No linked charts found in $FilePath")
                             continue
                         }
                         if ($FormulasSeen.contains($link[1].tostring())){
-                            write-host("Seen link already")
+                            write-host("Seen link (",$link[1],") already")
                             continue
                         }
                         else{
@@ -122,7 +122,7 @@ function Xlsx($Dir){
                         }
                     }
                 }
-               }
+            }
             
 
             catch{
@@ -154,14 +154,14 @@ function Ppt($Dir){
     #Check which files are locked, and keep unlocked files
     $PptFiles = CheckLocks $PptFiles $Dir
     $PowerPt = New-Object -ComObject powerpoint.application
-    write-host("PPT Files : ", $PptFiles)
+    write-host("PPT Files to read are : ", $PptFiles)
     #$PowerPt.visible = $false
     #Look for links in unlocked files
     foreach($File in $PptFiles){
 
         # NEW CODE, has shape link finding
             $FilePath = $Dir + "\" + $File
-            write-host("File ", $FilePath)
+            write-host("File currently being read : ", $FilePath)
             $Ppt = $PowerPt.Presentations.Open($FilePath, [Microsoft.Office.Core.MsoTriState]::msoFalse,[Microsoft.Office.Core.MsoTriState]::msoFalse,[Microsoft.Office.Core.MsoTriState]::msoFalse)
             $Slides = $Ppt.Slides
             $PptLinks[$FilePath] = [System.Collections.ArrayList]@()
@@ -220,7 +220,6 @@ function CheckLocks($Files, $Dir){
 
     return $OperableFiles
 }
-
 function ExportToCsv($LinkList){
     $CsvName = $Global:CsvName
     $LinkList.GetEnumerator() | ForEach-Object {
