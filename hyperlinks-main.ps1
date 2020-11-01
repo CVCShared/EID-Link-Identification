@@ -3,11 +3,13 @@ using module "C:\Users\Nash Ferguson\Desktop\EID-Link-Identification\link-search
 
 $Date = Get-Date -Format s
 $CsvName = $Date.tostring() -replace ":","-"
+$LogName = $CsvName + " log.txt"
 $CsvName = $CsvName + " link data.csv"
-$Dir = Read-Host("Please enter the directory to find links in: ")
+$Dir = "C:\Users\Nash Ferguson\Desktop\Files to read"
+#Read-Host("Please enter the directory to find links in: ")
 
-Start-Transcript
+Start-Transcript -Path "$PsScriptRoot\$LogName"
 $CheckForLinks = IdentifyLinks $Dir $CsvName
-Invoke-Expression $CheckForLinks
+$CheckForLinks
 Stop-Transcript
 # Need to add CSV input, and a replacement function. Should do as 2 psm1's
