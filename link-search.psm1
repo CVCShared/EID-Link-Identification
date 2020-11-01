@@ -5,8 +5,8 @@ function IdentifyLinks($Dir, $CsvName){
     $Dir = $Dir
     
     CheckLinksDocx($Dir)
-    #CheckLinksXlsx($Dir)
-    #CheckLinksPpt($Dir)
+    CheckLinksXlsx($Dir)
+    CheckLinksPpt($Dir)
 }
 
 # Docx, Xlsx, and Ppt functions all have same basic function: they search for all
@@ -120,7 +120,7 @@ function CheckLinksXlsx($Dir){
             foreach($Worksheet in $Workbook.Worksheets){
                 $WorksheetNum++
                 $Hyperlinks = $Workbook.Worksheets($WorksheetNum).Hyperlinks
-                $Charts = $Worksheet.chartobjects()
+                #$Charts = $Worksheet.chartobjects()
                 
                 write-host("File currently being read : ", $FilePath)
 
