@@ -3,11 +3,10 @@ using module "C:\Users\Nash Ferguson\Downloads\Communary.FileExtensions-master\C
 function IdentifyLinks($Dir, $CsvName){
     $global:CsvName = $CsvName
     $Dir = $Dir
-
-    #XLSX and PPT needs to be in separate function, containing it in IdentifyLinks caused an error
-    Docx($Dir)
-    #Xlsx($Dir)
-    #Ppt($Dir)
+    
+    CheckLinksDocx($Dir)
+    #CheckLinksXlsx($Dir)
+    #CheckLinksPpt($Dir)
 }
 
 # Docx, Xlsx, and Ppt functions all have same basic function: they search for all
@@ -15,13 +14,13 @@ function IdentifyLinks($Dir, $CsvName){
 # are locked, and then search for links in the files that remain (inacessible files are logged).
 # They then add to a hash table of documents and their links, which is then exported to a csv. 
 
-function Docx($Dir){
+function CheckLinksDocx($Dir){
     <#
     .SYNOPSIS
         A function to extract the links in all doc/x files in a given dir
     .DESCRIPTION
         This function does a FastFind for all doc/x files in the dir, 
-        opens each file in a Word COM object, gathers all links,
+        opens each file in a Word COM object, gathers all links (in text and shapes),
         and sends them to a CSV
     .PARAMETER Dir
         Directory to search for doc/x files in
@@ -76,13 +75,13 @@ function Docx($Dir){
 }
 }
 
-function Xlsx($Dir){
+function CheckLinksXlsx($Dir){
     <#
     .SYNOPSIS
         A function to extract the links in all xls/x files in a given dir
     .DESCRIPTION
         This function does a FastFind for all xls/x files in the dir, 
-        opens each file in an Excel COM object, gathers all links,
+        opens each file in an Excel COM object, gathers all links (in text and charts),
         and sends them to a CSV
     .PARAMETER Dir
         Directory to search for xls/x files in
@@ -184,13 +183,13 @@ function Xlsx($Dir){
      
 }
 
-function Ppt($Dir){
+function CheckLinksPpt($Dir){
     <#
     .SYNOPSIS
         A function to extract the links in all ppt/x files in a given dir
     .DESCRIPTION
         This function does a FastFind for all ppt/x files in the dir, 
-        opens each file in a Powerpoint COM object, gathers all links,
+        opens each file in a Powerpoint COM object, gathers all links (in text and shapes),
         and sends them to a CSV
     .PARAMETER Dir
         Directory to search for ppt/x files in
