@@ -256,6 +256,16 @@ function CheckLinksPpt($Dir){
 }
 
 function CheckLocks($Files, $Dir){
+    <#
+    .SYNOPSIS
+        A function to check which files in a directory are locked (currently open)
+    .DESCRIPTION
+        This function attempts to open the file in an IO stream, and then closes
+        it. If any error is thrown, it is recorded. If no error is thrown, it is
+        assumed the file is unlocked
+    .PARAMETER Dir
+        An array of files, and their directory
+    #>
     $CsvName = $Global:CsvName
     write-host("Checking Locks on dir $Dir")
     $OperableFiles = [System.Collections.ArrayList]@()
@@ -290,6 +300,15 @@ function CheckLocks($Files, $Dir){
 }
 
 function ExportToCsv($LinkList){
+    <#
+    .SYNOPSIS
+        A function to export files and their links to a CSV
+    .DESCRIPTION
+        This function iterates over each member of a hashtable, and exports
+        the key and value (file name and links) to a CSV
+    .PARAMETER Dir
+        A hashtable of {File Name:Links in the file}
+    #>
     $CsvName = $Global:CsvName
     #Foreach link in the list, append it to the global CSV
     $LinkList.GetEnumerator() | ForEach-Object {
