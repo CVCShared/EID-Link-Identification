@@ -1,4 +1,4 @@
-using module "C:\Users\Nash Ferguson\Downloads\Communary.FileExtensions-master\Communary.FileExtensions-master\Communary.FileExtensions.psm1"
+using module ".\Communary.FileExtensions-master\Communary.FileExtensions-master\Communary.FileExtensions.psm1"
 
 function IdentifyLinks($Dir, $CsvName){
     $global:CsvName = $CsvName

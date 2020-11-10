@@ -1,0 +1,58 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20201110142637
+Username: NashFerguson-PC\Nash Ferguson
+RunAs User: NashFerguson-PC\Nash Ferguson
+Machine: NASHFERGUSON-PC (Microsoft Windows NT 6.1.7601 Service Pack 1)
+Host Application: C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command Import-Module 'c:\Users\Nash Ferguson\.vscode\extensions\ms-vscode.powershell-2020.6.0\modules\PowerShellEditorServices\PowerShellEditorServices.psd1'; Start-EditorServices -HostName 'Visual Studio Code Host' -HostProfileId 'Microsoft.VSCode' -HostVersion '2020.6.0' -AdditionalModules @('PowerShellEditorServices.VSCode') -BundledModulesPath 'c:\Users\Nash Ferguson\.vscode\extensions\ms-vscode.powershell-2020.6.0\modules' -EnableConsoleRepl -StartupBanner "=====> PowerShell Integrated Console v2020.6.0 <=====
+" -LogLevel 'Normal' -DebugServiceOnly -LogPath 'c:\Users\Nash Ferguson\.vscode\extensions\ms-vscode.powershell-2020.6.0\logs\1605019889-c26367a6-2cec-4f6f-b3bd-392da776c1301605019861104\DebugSession-53.log' -SessionDetailsPath 'c:\Users\Nash Ferguson\.vscode\extensions\ms-vscode.powershell-2020.6.0\sessions\PSES-VSCode-2508-Debug' -FeatureFlags @() 
+Process ID: 13400
+PSVersion: 5.1.14409.1005
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.14409.1005
+BuildVersion: 10.0.14409.1005
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is C:\Users\Nash Ferguson\Desktop\EID-Link-Identification\2020-11-10T14-26-34 log.txt
+Checking Locks on dir C:\Users\Nash Ferguson\Desktop\Files to read
+C:\Users\Nash Ferguson\Desktop\Files to read\Docx\Linked Shapes (UNC) - DOC.doc  is unlocked
+C:\Users\Nash Ferguson\Desktop\Files to read\Docx\Linked Shapes (UNC).docx  is unlocked
+C:\Users\Nash Ferguson\Desktop\Files to read\Docx\Linked Tables.docx  is unlocked
+C:\Users\Nash Ferguson\Desktop\Files to read\Docx\Linked Text (UNC).docx  is unlocked
+C:\Users\Nash Ferguson\Desktop\Files to read\Docx\LinkedChart (Local).docx  is unlocked
+C:\Users\Nash Ferguson\Desktop\Files to read\Docx\NoProtection.docx  is unlocked
+C:\Users\Nash Ferguson\Desktop\Files to read\Docx\test-docx-2.docx  is unlocked
+C:\Users\Nash Ferguson\Desktop\Files to read\Docx\test-docx.docx  is unlocked
+Docx Files to read are : C:\Users\Nash Ferguson\Desktop\Files to read\Docx\Linked Shapes (UNC) - DOC.doc C:\Users\Nash Ferguson\Desktop\Files to read\Docx\Linked Shapes (UNC).docx C:\Users\Nash Ferguson\Desktop\Files to read\Docx\Linked Tables.docx C:\Users\Nash Ferguson\Desktop\Files to read\Docx\Linked Text (UNC).docx C:\Users\Nash Ferguson\Desktop\Files to read\Docx\LinkedChart (Local).docx C:\Users\Nash Ferguson\Desktop\Files to read\Docx\NoProtection.docx C:\Users\Nash Ferguson\Desktop\Files to read\Docx\test-docx-2.docx C:\Users\Nash Ferguson\Desktop\Files to read\Docx\test-docx.docx
+File currently being read:  C:\Users\Nash Ferguson\Desktop\Files to read\Docx\Linked Shapes (UNC) - DOC.doc
+File currently being read:  C:\Users\Nash Ferguson\Desktop\Files to read\Docx\Linked Shapes (UNC).docx
+File currently being read:  C:\Users\Nash Ferguson\Desktop\Files to read\Docx\Linked Tables.docx
+File currently being read:  C:\Users\Nash Ferguson\Desktop\Files to read\Docx\Linked Text (UNC).docx
+File currently being read:  C:\Users\Nash Ferguson\Desktop\Files to read\Docx\LinkedChart (Local).docx
+File currently being read:  C:\Users\Nash Ferguson\Desktop\Files to read\Docx\NoProtection.docx
+File currently being read:  C:\Users\Nash Ferguson\Desktop\Files to read\Docx\test-docx-2.docx
+File currently being read:  C:\Users\Nash Ferguson\Desktop\Files to read\Docx\test-docx.docx
+Checking Locks on dir C:\Users\Nash Ferguson\Desktop\Files to read
+C:\Users\Nash Ferguson\Desktop\Files to read\Xlsx\Check Charts.xlsx  is unlocked
+C:\Users\Nash Ferguson\Desktop\Files to read\Xlsx\Link Data - Remote Copy.xlsx  is unlocked
+C:\Users\Nash Ferguson\Desktop\Files to read\Xlsx\Linked Shapes (UNC) - XLS.xls  is unlocked
+C:\Users\Nash Ferguson\Desktop\Files to read\Xlsx\Linked Shapes (UNC).xlsx  is unlocked
+C:\Users\Nash Ferguson\Desktop\Files to read\Xlsx\Linked Text (UNC) - XLS.xls  is unlocked
+C:\Users\Nash Ferguson\Desktop\Files to read\Xlsx\Linked Text (UNC).xlsx  is unlocked
+C:\Users\Nash Ferguson\Desktop\Files to read\Xlsx\Test-Replace-Dirs.xlsx  is unlocked
+PS>TerminatingError(): "The pipeline has been stopped."
+>> TerminatingError(): "The pipeline has been stopped."
+>> TerminatingError(): "The pipeline has been stopped."
+>> TerminatingError(): "The pipeline has been stopped."
+>> @{ 'computerName' = if ([Environment]::MachineName) {[Environment]::MachineName}  else {'localhost'}; 'processId' = $PID; 'instanceId' = $host.InstanceId }
+
+Name                           Value
+----                           -----
+processId                      13400
+computerName                   NASHFERGUSON-PC
+instanceId                     b9631f45-08c2-41e4-a250-95a11ef027dc
+
+
