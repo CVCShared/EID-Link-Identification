@@ -4,9 +4,13 @@ function IdentifyLinks($Dir, $CsvName){
     $global:CsvName = $CsvName
     $Dir = $Dir
     
-    CheckLinksDocx($Dir)
-    CheckLinksXlsx($Dir)
-    CheckLinksPpt($Dir)
+    $CheckDocx = CheckLinksDocx $Dir
+    $CheckXlsx = CheckLinksXlsx $Dir
+    $CheckPpt = CheckLinksPpt $Dir
+    
+    $CheckDocx
+    $CheckXlsx
+    $CheckPpt
 }
 
 # Docx, Xlsx, and Ppt functions all have same basic function: they search for all
@@ -36,7 +40,7 @@ function CheckLinksDocx($Dir){
             'Doc type that doesnt exist' = "Doc/x"    
         }
         $EmptyDir|Export-Csv -Path "$Dir\$CsvName empty directories.csv" -NoClobber -Append -NoTypeInformation
-        continue
+        #continue
     }
     else{
     $DocxFiles = [System.Collections.ArrayList] $DocxFiles
@@ -98,7 +102,7 @@ function CheckLinksXlsx($Dir){
             'Doc type that doesnt exist' = "Xls/x"    
         }
         $EmptyDir|Export-Csv -Path "$Dir\$CsvName empty directories.csv" -NoClobber -Append -NoTypeInformation
-        continue
+        #continue
     }
 
     else{
@@ -205,7 +209,7 @@ function CheckLinksPpt($Dir){
             'Doc type that doesnt exist' = "Ppt/x"    
         }
         $EmptyDir|Export-Csv -Path "$Dir\$CsvName empty directories.csv" -NoClobber -Append -NoTypeInformation
-        continue
+        #continue
     }
     else{
     #Check which files are locked, and keep unlocked files

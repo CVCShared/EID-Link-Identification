@@ -10,6 +10,14 @@ $Dir = "C:\Users\Nash Ferguson\Desktop\Files to read"
 #Read-Host("Please enter the directory to find links in: ")
 
 Start-Transcript -Path "$PsScriptRoot\$LogName"
-$CheckForLinks = IdentifyLinks $Dir $CsvName
-$CheckForLinks
+
+try{
+    $CheckForLinks = IdentifyLinks $Dir $CsvName
+    $CheckForLinks
+}
+catch{
+    write-host("ERROR")
+    write-host($_.Exception.message)
+}
+
 Stop-Transcript
